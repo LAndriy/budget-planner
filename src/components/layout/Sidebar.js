@@ -39,7 +39,7 @@ const Sidebar = () => {
           boxSizing: 'border-box',
           backgroundColor: theme.palette.background.paper,
           borderRight: 'none',
-          boxShadow: theme.shadows[1],
+          boxShadow: theme.shadows[2],
         },
       }}
     >
@@ -65,7 +65,14 @@ const Sidebar = () => {
               }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemText 
+                primary={item.text} 
+                primaryTypographyProps={{
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  color: 'text.primary',
+                }} 
+              />
             </ListItem>
           ))}
         </List>
