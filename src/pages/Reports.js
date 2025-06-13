@@ -1,95 +1,110 @@
 import React from 'react';
-import { Typography, Box, Paper, Grid, Tabs, Tab } from '@mui/material';
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
+import { 
+  Typography, 
+  Box, 
+  Paper,
+  Tabs,
+  Tab,
+  Grid
+} from '@mui/material';
+import CategoryPieChart from '../components/charts/CategoryPieChart';
+import TrendLineChart from '../components/charts/TrendLineChart';
+import { useBudget } from '../context/BudgetContext';
+import { formatNumber } from '../utils/format';
 
 const Reports = () => {
-  const [value, setValue] = React.useState(0);
+  const { transactions } = useBudget();
+  const [activeTab, setActiveTab] = React.useState(0);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+  // Podsumowanie wydatków
+  const totalExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // Podsumowanie przychodów
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // Bilans
+  const balance = totalIncome - totalExpenses;
+
+  const handleChangeTab = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Raporty
-      </Typography>
-      
-      <Paper sx={{ width: '100%', mb: 3 }}>
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          indicatorColor="primary"
-          textColor="primary"
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab label="Przegląd miesięczny" />
-          <Tab label="Wydatki według kategorii" />
-          <Tab label="Trendy wydatków" />
-        </Tabs>
-        
-        <TabPanel value={value} index={0}>
-          <Box sx={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography color="text.secondary">Wykres miesięczny pojawi się tutaj</Typography>
-          </Box>
-        </TabPanel>
-        
-        <TabPanel value={value} index={1}>
-          <Box sx={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography color="text.secondary">Wykres kategorii pojawi się tutaj</Typography>
-          </Box>
-        </TabPanel>
-        
-        <TabPanel value={value} index={2}>
-          <Box sx={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography color="text.secondary">Wykres trendów pojawi się tutaj</Typography>
-          </Box>
-        </TabPanel>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Raporty
+        </Typography>
+      </Box>
+
+      <Paper sx={{ p: 2 }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={activeTab} onChange={handleChangeTab}>
+            <Tab label="Wykresy" />
+            <Tab label="Podsumowanie" />
+          </Tabs>
+        </Box>
+
+        {activeTab === 0 && (
+          <Grid container spacing={3} sx={{ mt: 2 }}>
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Rozkład wydatków po kategoriach
+                </Typography>
+                <CategoryPieChart />
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Trendy przychodów i wydatków
+                </Typography>
+                <TrendLineChart />
+              </Paper>
+            </Grid>
+          </Grid>
+        )}
+
+        {activeTab === 1 && (
+          <Grid container spacing={3} sx={{ mt: 2 }}>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Przychody
+                </Typography>
+                <Typography variant="h4" color="success.main" gutterBottom>
+                  {formatNumber(totalIncome)} zł
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Wydatki
+                </Typography>
+                <Typography variant="h4" color="error.main" gutterBottom>
+                  {formatNumber(totalExpenses)} zł
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Bilans
+                </Typography>
+                <Typography variant="h4" color={balance >= 0 ? 'success.main' : 'error.main'} gutterBottom>
+                  {formatNumber(balance)} zł
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        )}
       </Paper>
-      
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Największe wydatki
-            </Typography>
-            <Typography color="text.secondary" align="center" sx={{ mt: 4 }}>
-              Lista największych wydatków pojawi się tutaj
-            </Typography>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Podsumowanie kategorii
-            </Typography>
-            <Typography color="text.secondary" align="center" sx={{ mt: 4 }}>
-              Podsumowanie kategorii pojawi się tutaj
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
     </Box>
   );
 };
