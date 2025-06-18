@@ -1,21 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-
-// Layout
+import Box from '@mui/material/Box';
+import { BudgetProvider } from './context/BudgetContext';
 import Layout from './components/layout/Layout';
-
-// Pages
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import Profile from './pages/auth/Profile';
 
-// Context
-import { BudgetProvider } from './context/BudgetContext';
-
-// Theme
+// Tworzenie motywu
 const theme = createTheme({
   palette: {
     primary: {
@@ -24,33 +22,52 @@ const theme = createTheme({
     secondary: {
       main: '#dc004e',
     },
-    background: {
-      default: '#f5f5f5',
-    },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: [
+      '-apple-system',
+      'BlinkMacSystemFont',
+      '"Segoe UI"',
+      'Roboto',
+      '"Helvetica Neue"',
+      'Arial',
+      'sans-serif',
+      '"Apple Color Emoji"',
+      '"Segoe UI Emoji"',
+      '"Segoe UI Symbol"',
+    ].join(','),
   },
 });
 
-function App() {
+const App = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <BudgetProvider>
-        <Router>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </Layout>
-        </Router>
-      </BudgetProvider>
+      <Router>
+        <BudgetProvider>
+          <Box sx={{ display: 'flex' }}>
+            <CssBaseline />
+            <Layout onMenuClick={handleDrawerToggle} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/logowanie" element={<Login />} />
+                <Route path="/rejestracja" element={<Register />} />
+                <Route path="/profil" element={<Profile />} />
+                <Route path="/transakcje" element={<Transactions />} />
+                <Route path="/raporty" element={<Reports />} />
+                <Route path="/ustawienia" element={<Settings />} />
+              </Routes>
+            </Layout>
+          </Box>
+        </BudgetProvider>
+      </Router>
     </ThemeProvider>
   );
-}
+};
 
 export default App;

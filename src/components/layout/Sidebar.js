@@ -1,84 +1,160 @@
 import React from 'react';
-import { 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemIcon, 
-  ListItemText, 
-  Divider,
-  Toolbar,
-  Box 
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { Link as RouterLink } from 'react-router-dom';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import SettingsIcon from '@mui/icons-material/Settings';
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Box,
+  Avatar,
+  Typography,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
+import {
+  Dashboard as DashboardIcon,
+  AccountBalanceWallet as WalletIcon,
+  Receipt as TransactionsIcon,
+  Assessment as ReportsIcon,
+  Settings as SettingsIcon,
+  Person as ProfileIcon,
+} from '@mui/icons-material';
 
 const drawerWidth = 240;
 
-const menuItems = [
-  { text: 'Pulpit', icon: <DashboardIcon />, path: '/' },
-  { text: 'Transakcje', icon: <AccountBalanceWalletIcon />, path: '/transactions' },
-  { text: 'Raporty', icon: <BarChartIcon />, path: '/reports' },
-  { text: 'Ustawienia', icon: <SettingsIcon />, path: '/settings' },
-];
-
-const Sidebar = () => {
+const Sidebar = ({ mobileOpen, onClose }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Domyślne dane użytkownika
+  const user = {
+    displayName: 'Jan Kowalski',
+    email: 'jan.kowalski@example.com',
+  };
+
+  const userInitials = user.displayName 
+    ? user.displayName
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2)
+    : 'U';
+
+  const menuItems = [
+    { text: 'Pulpit', icon: <DashboardIcon />, path: '/' },
+    { text: 'Transakcje', icon: <TransactionsIcon />, path: '/transakcje' },
+    { text: 'Raporty', icon: <ReportsIcon />, path: '/raporty' },
+    { text: 'Ustawienia', icon: <SettingsIcon />, path: '/ustawienia' },
+  ];
+
+  const drawerContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box 
+        sx={{ 
+          p: 2, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center',
+          textAlign: 'center',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
+        }}
+      >
+        <Avatar 
+          sx={{ 
+            width: 64, 
+            height: 64, 
+            mb: 2,
+            bgcolor: 'secondary.main',
+            fontSize: '1.5rem'
+          }}
+        >
+          {userInitials}
+        </Avatar>
+        <Typography variant="subtitle1" fontWeight="bold">
+          {user.displayName}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {user.email}
+        </Typography>
+      </Box>
+      
+      <List sx={{ flexGrow: 1 }}>
+        {menuItems.map((item) => (
+          <ListItem 
+            button 
+            key={item.text} 
+            component={RouterLink} 
+            to={item.path}
+            onClick={isMobile ? onClose : null}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItem>
+        ))}
+      </List>
+      
+      <Divider />
+      
+      <List>
+        <ListItem 
+          button 
+          component={RouterLink} 
+          to="/profil"
+          onClick={isMobile ? onClose : null}
+        >
+          <ListItemIcon><ProfileIcon /></ListItemIcon>
+          <ListItemText primary="Profil" />
+        </ListItem>
+        <ListItem 
+          button 
+          component={RouterLink} 
+          to="/logowanie"
+          onClick={isMobile ? onClose : null}
+        >
+          <ListItemIcon><WalletIcon /></ListItemIcon>
+          <ListItemText primary="Wyloguj się" />
+        </ListItem>
+      </List>
+    </Box>
+  );
 
   return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-          backgroundColor: theme.palette.background.paper,
-          borderRight: 'none',
-          boxShadow: theme.shadows[2],
-        },
-      }}
+    <Box
+      component="nav"
+      sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      aria-label="menu boczne"
     >
-      <Toolbar />
-      <Box sx={{ overflow: 'auto' }}>
-        <List>
-          {menuItems.map((item) => (
-            <ListItem 
-              button 
-              key={item.text} 
-              component={RouterLink} 
-              to={item.path}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                  '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
-                    color: theme.palette.primary.main,
-                  },
-                },
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                },
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText 
-                primary={item.text} 
-                primaryTypographyProps={{
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  color: 'text.primary',
-                }} 
-              />
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-      </Box>
-    </Drawer>
+      {/* Wersja mobilna */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onClose}
+        ModalProps={{
+          keepMounted: true, // Lepsza wydajność na urządzeniach mobilnych
+        }}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      {/* Wersja desktopowa */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', sm: 'block' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+        }}
+        open
+      >
+        {drawerContent}
+      </Drawer>
+    </Box>
   );
 };
 
