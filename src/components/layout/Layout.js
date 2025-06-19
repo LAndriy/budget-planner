@@ -1,29 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { Box, CssBaseline, useMediaQuery } from '@mui/material';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
-const Layout = ({ children, onMenuClick, mobileOpen, setMobileOpen }) => {
+const Layout = ({ children }) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [open, setOpen] = React.useState(!isMobile);
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
+
+  // Zamykaj menu po zmianie trasy
+  useEffect(() => {
+    if (mobileOpen) {
+      setMobileOpen(false);
+    }
+  }, [location, mobileOpen]);
 
   const handleDrawerToggle = () => {
-    if (isMobile) {
-      setMobileOpen(!mobileOpen);
-    } else {
-      setOpen(!open);
-    }
+    console.log('Toggle clicked, current mobileOpen:', mobileOpen);
+    setMobileOpen(!mobileOpen);
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <CssBaseline />
-      <Header onMenuClick={handleDrawerToggle} />
+      <Header onMenuClick={handleDrawerToggle} isMobile={isMobile} />
       <Sidebar 
-        open={isMobile ? mobileOpen : open} 
-        onClose={handleDrawerToggle} 
+        mobileOpen={mobileOpen} 
+        onClose={() =>{console.log('Closing sidebar'); setMobileOpen(false)}}
         isMobile={isMobile}
       />
       <Box
@@ -31,19 +37,11 @@ const Layout = ({ children, onMenuClick, mobileOpen, setMobileOpen }) => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${open ? 240 : 0}px)` },
-          ml: { sm: `${open ? 240 : 0}px` },
+          width: { sm: `calc(100% - 240px)` },
+          ml: { sm: '240px' },
           mt: '64px', // Wysokość AppBar
-          transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          ...(open && {
-            transition: theme.transitions.create(['margin', 'width'], {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-          }),
+          minHeight: 'calc(100vh - 64px)',
+          backgroundColor: theme.palette.background.default,
         }}
       >
         {children}

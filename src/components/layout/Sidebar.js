@@ -11,7 +11,6 @@ import {
   Avatar,
   Typography,
   useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -24,9 +23,9 @@ import {
 
 const drawerWidth = 240;
 
-const Sidebar = ({ mobileOpen, onClose }) => {
+const Sidebar = ({ mobileOpen, onClose, isMobile }) => {
+  console.log('Sidebar render - mobileOpen:', mobileOpen, 'isMobile:', isMobile);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Domyślne dane użytkownika
   const user = {
@@ -81,7 +80,7 @@ const Sidebar = ({ mobileOpen, onClose }) => {
         </Typography>
       </Box>
       
-      <List sx={{ flexGrow: 1 }}>
+      <List sx={{ flexGrow: 1, overflow: 'auto' }}>
         {menuItems.map((item) => (
           <ListItem 
             button 
@@ -124,7 +123,10 @@ const Sidebar = ({ mobileOpen, onClose }) => {
   return (
     <Box
       component="nav"
-      sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      sx={{ 
+        width: { sm: drawerWidth }, 
+        flexShrink: { sm: 0 },
+      }}
       aria-label="menu boczne"
     >
       {/* Wersja mobilna */}
@@ -137,7 +139,15 @@ const Sidebar = ({ mobileOpen, onClose }) => {
         }}
         sx={{
           display: { xs: 'block', sm: 'none' },
-          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          '& .MuiDrawer-paper': { 
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            height: 'calc(100% - 64px)',
+            top: '64px',
+            left: '0',
+            zIndex: theme.zIndex.drawer,
+            position: 'fixed',
+          },
         }}
       >
         {drawerContent}
@@ -148,7 +158,13 @@ const Sidebar = ({ mobileOpen, onClose }) => {
         variant="permanent"
         sx={{
           display: { xs: 'none', sm: 'block' },
-          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          '& .MuiDrawer-paper': { 
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            border: 'none',
+            boxShadow: theme.shadows[3],
+            position: 'fixed',
+          },
         }}
         open
       >

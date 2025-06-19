@@ -40,11 +40,6 @@ const theme = createTheme({
 });
 
 const App = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -52,7 +47,7 @@ const App = () => {
         <BudgetProvider>
           <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <Layout onMenuClick={handleDrawerToggle} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
+            <Layout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/logowanie" element={<Login />} />

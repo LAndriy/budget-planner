@@ -50,14 +50,20 @@ const Header = ({ onMenuClick }) => {
     : 'U';
 
   return (
-    <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <AppBar position="fixed" sx={{width: { sm: `calc(100% - 240px)` },ml: { sm: '240px' }, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar>
         <IconButton
           color="inherit"
           aria-label="open drawer"
           edge="start"
-          onClick={onMenuClick}
-          sx={{ mr: 2 }}
+          onClick={() => {
+            console.log('Menu button clicked');
+            onMenuClick();
+          }}
+          sx={{ 
+            mr: 2,
+            display: { sm: 'none' } // Tylko na małych ekranach
+          }}
         >
           <MenuIcon />
         </IconButton>
