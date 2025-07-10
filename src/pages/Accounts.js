@@ -24,23 +24,27 @@ import { useAppContext } from '../context/AppContext';
 
 const Accounts = () => {
   const { 
-    accounts, 
+    accounts = [], 
     addAccount, 
     updateAccount, 
     deleteAccount, 
     loading, 
-    error 
+    error,
+    fetchAccounts
   } = useAppContext();
   
   const [openDialog, setOpenDialog] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    balance: '',
+    balance: 0,
     currency: 'PLN',
     description: ''
   });
   const [editingAccount, setEditingAccount] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const userId = localStorage.getItem('userId');
 
   const handleOpenDialog = (account = null) => {
     if (account) {
@@ -78,43 +82,72 @@ const Accounts = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+    setIsSubmitting(true);
+    
     try {
+      if (!formData.name) {
+        throw new Error('Nazwa konta jest wymagana');
+      }
+      
+      const accountData = {
+        ...formData,
+        userId: userId,
+        balance: parseFloat(formData.balance) || 0
+      };
+      
       if (editingAccount) {
-        // Aktualizacja istniejącego konta
-        const result = await updateAccount(editingAccount.id, formData);
+        const result = await updateAccount(editingAccount.id, accountData);
         if (!result.success) {
-          console.error('Błąd podczas aktualizacji konta:', result.error);
-          return;
+          throw new Error(result.error || 'Nie udało się zaktualizować konta');
         }
       } else {
-        // Dodanie nowego konta
-        const result = await addAccount(formData);
+        const result = await addAccount(accountData);
         if (!result.success) {
-          console.error('Błąd podczas dodawania konta:', result.error);
-          return;
+          throw new Error(result.error || 'Nie udało się dodać konta');
         }
       }
-      handleCloseDialog();
+      
+      // Refresh accounts list
+      await fetchAccounts(userId);
+      
+      setOpenDialog(false);
+      setFormData({ name: '', balance: 0, currency: 'PLN', description: '' });
+      setEditingAccount(null);
     } catch (err) {
       console.error('Błąd podczas zapisywania konta:', err);
+      setFormError(err.message || 'Wystąpił błąd podczas zapisywania konta');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDeleteAccount = async (id) => {
-    if (window.confirm('Czy na pewno chcesz usunąć to konto? Ta operacja jest nieodwracalna.')) {
-      try {
-        setIsDeleting(true);
-        const result = await deleteAccount(id);
-        if (!result.success) {
-          console.error('Błąd podczas usuwania konta:', result.error);
-          alert(`Nie udało się usunąć konta: ${result.error}`);
-        }
-      } catch (err) {
-        console.error('Błąd podczas usuwania konta:', err);
-        alert('Wystąpił nieoczekiwany błąd podczas usuwania konta');
-      } finally {
-        setIsDeleting(false);
+  const handleDelete = async () => {
+    if (!editingAccount) return;
+    
+    if (!window.confirm('Czy na pewno chcesz usunąć to konto? Ta operacja jest nieodwracalna.')) {
+      return;
+    }
+    
+    try {
+      setIsDeleting(true);
+      const result = await deleteAccount(editingAccount.id);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Nie udało się usunąć konta');
       }
+      
+      // Refresh accounts list
+      await fetchAccounts(userId);
+      
+      setOpenDialog(false);
+      setEditingAccount(null);
+      setFormData({ name: '', balance: 0, currency: 'PLN', description: '' });
+    } catch (err) {
+      console.error('Błąd podczas usuwania konta:', err);
+      setFormError(err.message || 'Wystąpił błąd podczas usuwania konta');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -169,7 +202,10 @@ const Accounts = () => {
                       <IconButton onClick={() => handleOpenDialog(account)}>
                         <EditIcon color="primary" />
                       </IconButton>
-                      <IconButton onClick={() => handleDeleteAccount(account.id)}>
+                      <IconButton onClick={() => {
+                        setEditingAccount(account);
+                        handleDelete();
+                      }}>
                         <DeleteIcon color="error" />
                       </IconButton>
                     </TableCell>

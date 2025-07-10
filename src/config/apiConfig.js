@@ -1,42 +1,47 @@
 export const API_CONFIG = {
-  baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseUrl: 'https://budgetplanerapi07092025.azurewebsites.net',
   endpoints: {
-    // Użytkownicy
+    // Authentication
+    auth: {
+      login: '/api/Login',
+    },
+    // Użytkownicy (używane również do rejestracji)
     users: {
-      getAll: '/Users/AllUsers',
-      getById: (id) => `/Users/${id}`,
-      create: '/Users/AddUser',
-      update: '/Users/UpdateUser',
-      delete: (id) => `/Users/DeleteUser/${id}`
+      getAll: '/api/Users/AllUsers',
+      getById: (id) => `/api/Users/${id}`,
+      create: '/api/Users/AddUser',
+      update: '/api/Users/UpdateUser',
+      delete: (id) => `/api/Users/DeleteUser/${id}`
     },
     // Transakcje
     transactions: {
-      getAll: (accountId) => `/Transaction/AllTransactions/${accountId}`,
-      getByCategory: (accountId, categoryId) => `/Transaction/AllTransactions/${accountId}/${categoryId}`,
-      getById: (id) => `/Transaction/GetTransaction/${id}`,
-      create: '/Transaction/AddTransaction',
-      update: '/Transaction/UpdateTransaction',
-      delete: (id) => `/Transaction/DeleteTransaction/${id}`
+      getAll: (accountId) => `/api/Transaction/AllTransactions/${accountId}`,
+      getByCategory: (accountId, categoryId) => `/api/Transaction/AllTransactions/${accountId}/${categoryId}`,
+      getById: (id) => `/api/Transaction/${id}`,
+      create: '/api/Transaction/AddTransaction',
+      update: '/api/Transaction/UpdateTransaction',
+      delete: (id) => `/api/Transaction/DeleteTransaction/${id}`
     },
     // Kategorie
     categories: {
-      getAll: '/TransactionCategory/AllCategories',
-      getById: (id) => `/TransactionCategory/GetCategory/${id}`,
-      create: '/TransactionCategory/AddCategory',
-      update: '/TransactionCategory/UpdateCategory',
-      delete: (id) => `/TransactionCategory/DeleteCategory/${id}`
+      getAll: '/api/TransactionCategory/AllCategories',
+      getById: (id) => `/api/TransactionCategory/GetCategory/${id}`,
+      create: '/api/TransactionCategory/AddCategory',
+      update: '/api/TransactionCategory/UpdateCategory',
+      delete: (id) => `/api/TransactionCategory/DeleteCategory/${id}`
     },
     // Raporty
     reports: {
-      allCategories: (accountId) => `/Report/AllCategoryReport/${accountId}`,
-      byCategory: (accountId, categoryId) => `/Report/${accountId}/${categoryId}`
+      getAllCategories: (accountId) => `/api/Report/AllCategoryReport/${accountId}`,
+      getByCategory: (accountId, categoryId) => `/api/Report/${accountId}/${categoryId}`
     },
     // Konta finansowe
     accounts: {
-      getById: (id) => `/FinanceAccount/GetFinanceAccount/${id}`,
-      create: '/FinanceAccount/AddFinanceAccount',
-      update: '/FinanceAccount/UpdateFinanceAccount',
-      delete: (id) => `/FinanceAccount/DeleteFinanceAccount/${id}`
+      getByUser: (userId) => `/api/FinanceAccount/GetAllFinanceAccounts/${userId}`,
+      getById: (userId, accountId) => `/api/FinanceAccount/${userId}/${accountId}`,
+      create: '/api/FinanceAccount/AddFinanceAccount',
+      update: '/api/FinanceAccount/UpdateFinanceAccount',
+      delete: (id) => `/api/FinanceAccount/DeleteFinanceAccount/${id}`
     }
   }
 };

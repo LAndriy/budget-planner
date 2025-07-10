@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Container, 
@@ -10,21 +10,30 @@ import {
   Alert,
   LinearProgress
 } from '@mui/material';
+import { useAppContext } from '../../context/AppContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAppContext();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    // Symulacja logowania
-    setTimeout(() => {
-      setLoading(false);
-      navigate('/');
-    }, 1000);
+    setError('');
+    
+    try {
+      const result = await login({ login: email, password });
+      if (result.success) {
+        navigate('/');
+      } else {
+        setError(result.error || 'Nie udało się zalogować. Spróbuj ponownie.');
+      }
+    } catch (err) {
+      setError('Wystąpił błąd podczas logowania. Spróbuj ponownie.');
+      console.error('Błąd logowania:', err);
+    }
   };
 
   return (
@@ -43,6 +52,11 @@ const Login = () => {
           </Typography>
           
           <Box component="form" onSubmit={handleSubmit} noValidate>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
             <TextField
               margin="normal"
               required
@@ -50,6 +64,7 @@ const Login = () => {
               id="email"
               label="Adres email"
               name="email"
+              type="email"
               autoComplete="email"
               autoFocus
               value={email}
@@ -68,13 +83,11 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
             
-            {loading && <LinearProgress sx={{ my: 2 }} />}
             
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              disabled={loading}
               sx={{ mt: 3, mb: 2 }}
             >
               Zaloguj się

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import {
+import { 
   Container,
   Box,
   Typography,
@@ -9,8 +9,10 @@ import {
   Paper,
   FormControlLabel,
   Checkbox,
-  LinearProgress
+  LinearProgress,
+  Alert
 } from '@mui/material';
+import { useAppContext } from '../../context/AppContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -21,8 +23,10 @@ const Register = () => {
     confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAppContext();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,14 +36,55 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Walidacja haseł
+    if (formData.password !== formData.confirmPassword) {
+      setError('Hasła nie są identyczne');
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setError('Hasło musi mieć co najmniej 6 znaków');
+      return;
+    }
+    
+    if (!termsAccepted) {
+      setError('Musisz zaakceptować regulamin');
+      return;
+    }
+    
     setLoading(true);
-    // Symulacja rejestracji
-    setTimeout(() => {
+    setError('');
+    
+    try {
+      const result = await register({
+        username: formData.email, // Using email as username
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        firstName: formData.firstName,
+        lastName: formData.lastName
+      });
+      
+      if (result.success) {
+        navigate('/');
+      } else {
+        // Handle validation errors if present
+        if (result.validationErrors) {
+          const errorMessages = Object.values(result.validationErrors).flat();
+          setError(errorMessages.join('\n'));
+        } else {
+          setError(result.error || 'Wystąpił błąd podczas rejestracji');
+        }
+      }
+    } catch (err) {
+      setError('Wystąpił błąd podczas łączenia z serwerem');
+      console.error('Błąd rejestracji:', err);
+    } finally {
       setLoading(false);
-      navigate('/logowanie');
-    }, 1000);
+    }
   };
 
   return (
@@ -58,6 +103,11 @@ const Register = () => {
           </Typography>
           
           <Box component="form" onSubmit={handleSubmit} noValidate>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
               <TextField
                 margin="normal"

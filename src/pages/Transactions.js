@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Typography, 
   Box, 
@@ -33,7 +33,7 @@ import {
   ArrowDownward as ExpenseIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import { useBudget } from '../context/BudgetContext';
+import { useAppContext } from '../context/AppContext';
 import TransactionForm from '../components/transactions/TransactionForm';
 import TransactionEdit from '../components/transactions/TransactionEdit';
 import { 
@@ -67,31 +67,66 @@ const AmountCell = styled(TableCell)(({ theme, type }) => ({
 const Transactions = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
   const { 
-    transactions, 
-    categories, 
-    accounts,
-    deleteTransaction 
-  } = useBudget();
+    transactions = [], 
+    categories = [],
+    accounts = [],
+    deleteTransaction,
+    fetchTransactions,
+    fetchCategories,
+    fetchAccounts,
+    loading,
+    error,
+    selectedAccount
+  } = useAppContext();
   
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterAccount, setFilterAccount] = useState('all');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const userId = localStorage.getItem('userId');
+  
+  // Fetch data on component mount and when selectedAccount changes
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await Promise.all([
+          fetchCategories(userId),
+          fetchAccounts(userId)
+        ]);
+        
+        if (selectedAccount?.id) {
+          await fetchTransactions(selectedAccount.id);
+        }
+      } catch (err) {
+        console.error('Błąd podczas ładowania danych:', err);
+        setFormError('Nie udało się załadować danych');
+      }
+    };
+    
+    loadData();
+  }, [userId, selectedAccount, fetchTransactions, fetchCategories, fetchAccounts]);
 
-  // Sortowanie i filtrowanie transakcji
+  // Sort and filter transactions
   const filteredTransactions = useMemo(() => {
+    if (!Array.isArray(transactions)) return [];
+    
     return [...transactions]
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .filter(transaction => {
+        if (!transaction) return false;
+        
         const matchesSearch = transaction.description
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ?? false;
           
+        const transactionAmount = parseFloat(transaction.amount) || 0;
+        const isIncome = transactionAmount >= 0;
         const matchesType = filterType === 'all' || 
-          (filterType === 'income' ? transaction.amount > 0 : transaction.amount < 0);
+          (filterType === 'income' ? isIncome : !isIncome);
           
         const matchesCategory = filterCategory === 'all' || 
           transaction.categoryId === filterCategory;
@@ -112,8 +147,27 @@ const Transactions = () => {
   };
   
   const handleDelete = async (id) => {
-    if (window.confirm('Czy na pewno chcesz usunąć tę transakcję?')) {
-      await deleteTransaction(id);
+    if (!window.confirm('Czy na pewno chcesz usunąć tę transakcję? Ta operacja jest nieodwracalna.')) {
+      return;
+    }
+    
+    try {
+      setIsDeleting(true);
+      const result = await deleteTransaction(id);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Nie udało się usunąć transakcji');
+      }
+      
+      // Refresh transactions list
+      if (selectedAccount?.id) {
+        await fetchTransactions(selectedAccount.id);
+      }
+    } catch (err) {
+      console.error('Błąd podczas usuwania transakcji:', err);
+      setFormError(err.message || 'Wystąpił błąd podczas usuwania transakcji');
+    } finally {
+      setIsDeleting(false);
     }
   };
   

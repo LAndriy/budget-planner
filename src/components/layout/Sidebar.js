@@ -46,7 +46,8 @@ const Sidebar = ({ mobileOpen, onClose, isMobile }) => {
     { text: 'Pulpit', icon: <DashboardIcon />, path: '/' },
     { text: 'Transakcje', icon: <TransactionsIcon />, path: '/transakcje' },
     { text: 'Raporty', icon: <ReportsIcon />, path: '/raporty' },
-    { text: 'Ustawienia', icon: <SettingsIcon />, path: '/ustawienia' },
+    { text: 'Konta bankowe', icon: <WalletIcon />, path: '/konta' },
+    { text: 'Kategorie', icon: <WalletIcon />, path: '/kategorie' },
   ];
 
   const drawerContent = (
@@ -88,6 +89,7 @@ const Sidebar = ({ mobileOpen, onClose, isMobile }) => {
             component={RouterLink} 
             to={item.path}
             onClick={isMobile ? onClose : null}
+            sx={{ '& .MuiListItemText-primary': { color: 'text.primary' } }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
@@ -103,6 +105,7 @@ const Sidebar = ({ mobileOpen, onClose, isMobile }) => {
           component={RouterLink} 
           to="/profil"
           onClick={isMobile ? onClose : null}
+          sx={{ '& .MuiListItemText-primary': { color: 'text.primary' } }}
         >
           <ListItemIcon><ProfileIcon /></ListItemIcon>
           <ListItemText primary="Profil" />
@@ -112,6 +115,7 @@ const Sidebar = ({ mobileOpen, onClose, isMobile }) => {
           component={RouterLink} 
           to="/logowanie"
           onClick={isMobile ? onClose : null}
+          sx={{ '& .MuiListItemText-primary': { color: 'text.primary' } }}
         >
           <ListItemIcon><WalletIcon /></ListItemIcon>
           <ListItemText primary="Wyloguj się" />

@@ -37,6 +37,17 @@ apiService.interceptors.response.use(
 );
 
 export const apiEndpoints = {
+  // Autoryzacja
+  auth: {
+    login: async (credentials) => {
+      // Format danych zgodny z oczekiwanym przez backend
+      const loginData = {
+        Login: credentials.login,
+        Password: credentials.password
+      };
+      return apiService.post(API_CONFIG.endpoints.auth.login, loginData);
+    }
+  },
   // Użytkownicy
   users: {
     getAll: async () => {

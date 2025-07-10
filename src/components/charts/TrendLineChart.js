@@ -1,10 +1,10 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useBudget } from '../../context/BudgetContext';
+import { useAppContext } from '../../context/AppContext';
 import { formatNumber, formatDate } from '../../utils/format';
 
 const TrendLineChart = () => {
-  const { transactions } = useBudget();
+  const { transactions = [] } = useAppContext();
   
   // Grupujemy transakcje po miesiącach
   const monthlyData = transactions.reduce((acc, transaction) => {

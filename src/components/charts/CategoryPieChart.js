@@ -1,10 +1,10 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { useBudget } from '../../context/BudgetContext';
+import { useAppContext } from '../../context/AppContext';
 import { formatNumber } from '../../utils/format';
 
 const CategoryPieChart = () => {
-  const { transactions, categories } = useBudget();
+  const { transactions = [], categories = [] } = useAppContext();
 
   // Filtrujemy tylko wydatki i grupujemy je po kategoriach
   const expensesByCategory = transactions

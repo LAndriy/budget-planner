@@ -27,11 +27,11 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { pl } from 'date-fns/locale';
-import { useBudget } from '../../context/BudgetContext';
+import { useAppContext } from '../../context/AppContext';
 import { formatNumber, formatCurrency } from '../../utils/format';
 
 const TransactionForm = ({ triggerButton = {} }) => {
-  const { categories, accounts, addTransaction } = useBudget();
+  const { categories = [], accounts = [], addTransaction } = useAppContext();
   const [open, setOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({

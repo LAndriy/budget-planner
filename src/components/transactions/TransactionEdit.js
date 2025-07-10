@@ -26,11 +26,11 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { pl } from 'date-fns/locale';
-import { useBudget } from '../../context/BudgetContext';
+import { useAppContext } from '../../context/AppContext';
 import { formatCurrency } from '../../utils/format';
 
 const TransactionEdit = ({ transaction, onClose }) => {
-  const { categories, accounts, updateTransaction } = useBudget();
+  const { categories = [], accounts = [], updateTransaction } = useAppContext();
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     description: transaction.description,

@@ -9,11 +9,11 @@ import {
 } from '@mui/material';
 import CategoryPieChart from '../components/charts/CategoryPieChart';
 import TrendLineChart from '../components/charts/TrendLineChart';
-import { useBudget } from '../context/BudgetContext';
+import { useAppContext } from '../context/AppContext';
 import { formatNumber } from '../utils/format';
 
 const Reports = () => {
-  const { transactions } = useBudget();
+  const { transactions = [] } = useAppContext();
   const [activeTab, setActiveTab] = React.useState(0);
 
   // Podsumowanie wydatków

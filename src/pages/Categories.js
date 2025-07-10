@@ -32,18 +32,32 @@ import {
 import { useAppContext } from '../context/AppContext';
 
 const Categories = () => {
-  const { categories, addCategory, updateCategory, deleteCategory, loading } = useAppContext();
+  const { 
+    categories = [], 
+    addCategory, 
+    updateCategory, 
+    deleteCategory, 
+    loading, 
+    fetchCategories 
+  } = useAppContext();
+  
   const [openDialog, setOpenDialog] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     color: '#1976d2',
-    type: 'expense' // 'expense' lub 'income'
+    type: 'expense', // 'expense' or 'income'
+    icon: 'category'
   });
+  
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const userId = localStorage.getItem('userId');
 
   const handleOpenDialog = (category = null) => {
     if (category) {
@@ -81,25 +95,65 @@ const Categories = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+    setIsSubmitting(true);
+    
     try {
-      if (editingCategory) {
-        await updateCategory({ ...editingCategory, ...formData });
-      } else {
-        await addCategory(formData);
+      if (!formData.name) {
+        throw new Error('Nazwa kategorii jest wymagana');
       }
-      handleCloseDialog();
+      
+      const categoryData = {
+        ...formData,
+        userId: userId
+      };
+      
+      if (editingCategory) {
+        const result = await updateCategory(editingCategory.id, categoryData);
+        if (!result.success) {
+          throw new Error(result.error || 'Nie udało się zaktualizować kategorii');
+        }
+      } else {
+        const result = await addCategory(categoryData);
+        if (!result.success) {
+          throw new Error(result.error || 'Nie udało się dodać kategorii');
+        }
+      }
+      
+      // Refresh categories list
+      await fetchCategories(userId);
+      
+      setOpenDialog(false);
+      setFormData({ name: '', description: '', color: '#1976d2', type: 'expense', icon: 'category' });
+      setEditingCategory(null);
     } catch (err) {
       console.error('Błąd podczas zapisywania kategorii:', err);
+      setFormError(err.message || 'Wystąpił błąd podczas zapisywania kategorii');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Czy na pewno chcesz usunąć tę kategorię? Wszystkie powiązane transakcje stracą przypisanie do tej kategorii.')) {
-      try {
-        await deleteCategory(id);
-      } catch (err) {
-        console.error('Błąd podczas usuwania kategorii:', err);
+    if (!window.confirm('Czy na pewno chcesz usunąć tę kategorię? Ta operacja jest nieodwracalna.')) {
+      return;
+    }
+    
+    try {
+      setIsDeleting(true);
+      const result = await deleteCategory(id);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Nie udało się usunąć kategorii');
       }
+      
+      // Refresh categories list
+      await fetchCategories(userId);
+    } catch (err) {
+      console.error('Błąd podczas usuwania kategorii:', err);
+      setFormError(err.message || 'Wystąpił błąd podczas usuwania kategorii');
+    } finally {
+      setIsDeleting(false);
     }
   };
 

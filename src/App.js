@@ -1,8 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
+import { SnackbarProvider } from 'notistack';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
@@ -57,7 +58,9 @@ const theme = createTheme({
 // Komponent chroniący trasy wymagające logowania
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAppContext();
+  const location = useLocation();
   
+  // Jeśli trwa ładowanie, pokaż loader
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
@@ -66,80 +69,47 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
+  // Jeśli użytkownik nie jest zalogowany, przekieruj do logowania
   if (!user) {
-    return <Navigate to="/logowanie" replace />;
+    return <Navigate to="/logowanie" state={{ from: location }} replace />;
   }
   
   return children;
 };
 
+// Komponent dla chronionych tras
+const ProtectedLayout = ({ children }) => (
+  <ProtectedRoute>
+    <Layout>
+      {children}
+    </Layout>
+  </ProtectedRoute>
+);
+
 // Główny komponent aplikacji
 const AppContent = () => {
-  const { loading } = useAppContext();
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <Layout>
-        <Routes>
-          <Route path="/logowanie" element={<Login />} />
-          <Route path="/rejestracja" element={<Register />} />
-          
-          {/* Chronione trasy */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/profil" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/transakcje" element={
-            <ProtectedRoute>
-              <Transactions />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/konta" element={
-            <ProtectedRoute>
-              <Accounts />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/kategorie" element={
-            <ProtectedRoute>
-              <Categories />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/raporty" element={
-            <ProtectedRoute>
-              <Reports />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/ustawienia" element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          } />
-          
-          {/* Domyślny przekierowanie */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        {/* Publiczne trasy */}
+        <Route path="/logowanie" element={<Login />} />
+        <Route path="/rejestracja" element={<Register />} />
+        
+        {/* Chronione trasy */}
+        <Route element={<ProtectedLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="/dashboard" element={<Navigate to="/" replace />} />
+          <Route path="/profil" element={<Profile />} />
+          <Route path="/transakcje" element={<Transactions />} />
+          <Route path="/konta" element={<Accounts />} />
+          <Route path="/kategorie" element={<Categories />} />
+          <Route path="/raporty" element={<Reports />} />
+        </Route>
+        
+        {/* Domyślne przekierowanie */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Box>
   );
 };
@@ -148,11 +118,21 @@ const AppContent = () => {
 const App = () => {
   return (
     <ThemeProvider theme={theme}>
-      <AppProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AppProvider>
+      <SnackbarProvider
+        maxSnack={3}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        autoHideDuration={5000}
+        preventDuplicate
+      >
+        <AppProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </AppProvider>
+      </SnackbarProvider>
     </ThemeProvider>
   );
 };
